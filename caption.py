@@ -143,12 +143,6 @@ class Captioner:
         inp = DEFAULT_IMAGE_TOKEN + "\n"
         inp += PROMPT
 
-        if autocaption_prefix:
-            inp += f"\n\nYou must start the caption with '{autocaption_prefix}'. "
-
-        if autocaption_suffix:
-            inp += f"\n\nYou must end the caption with '{autocaption_suffix}'."
-
         conv.append_message(conv.roles[0], inp)
 
         conv.append_message(conv.roles[1], None)
@@ -174,6 +168,8 @@ class Captioner:
             output = self.tokenizer.batch_decode(output_ids, skip_special_tokens=True)[
                 0
             ].strip()
+
+            output = autocaption_prefix + output + autocaption_suffix
 
             print(f"Caption for {image_path}: {output}")
 
