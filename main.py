@@ -18,6 +18,12 @@ if __name__ == "__main__":
         help="Suffix for the auto-generated captions.",
         default="",
     )
+    parser.add_argument(
+        "--encoder_prompt",
+        type=str,
+        help="Prompt addition for encode model.",
+        default="",
+    )
 
     args = parser.parse_args()
 
@@ -29,6 +35,6 @@ if __name__ == "__main__":
 
     print("Captioning images...")
 
-    captioner.caption_images(args.image_folder, args.prefix, args.suffix)
+    captioner.caption_images(args.image_folder, args.prefix, args.suffix, args.encoder_prompt)
 
     print("All images captioned.")

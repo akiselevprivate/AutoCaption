@@ -47,7 +47,7 @@ weights = [
 ]
 
 PROMPT = """
-Write a four sentence caption for this image. In the first sentence describe the style and type (painting, photo, etc) of the image. Describe in the remaining sentences the contents and composition of the image. Only use language that would be used to prompt a text to image model. Do not include usage. Comma separate keywords rather than using "or". Precise composition is important. Avoid phrases like "conveys a sense of" and "capturing the", just use the terms themselves.
+Write a four sentence caption{ENCODER_PROMPT} for this image. In the first sentence describe the style and type (painting, photo, etc) of the image. Describe in the remaining sentences the contents and composition of the image. Only use language that would be used to prompt a text to image model. Do not include usage. Comma separate keywords rather than using "or". Precise composition is important. Avoid phrases like "conveys a sense of" and "capturing the", just use the terms themselves.
 
 Good examples are:
 
@@ -110,14 +110,22 @@ class Captioner:
         return True
 
     def caption_images(
-        self, image_folder: Path, autocaption_prefix: str, autocaption_suffix: str
+        self,
+        image_folder: Path,
+        autocaption_prefix: str,
+        autocaption_suffix: str,
+        encoder_prompt: str,
     ):
         for image_path, caption_path in self.iter_images_captions(image_folder):
             if caption_path.exists():
                 print(f"{image_path.name} is already captioned")
             else:
                 self.caption_image(
-                    image_path, caption_path, autocaption_prefix, autocaption_suffix
+                    image_path,
+                    caption_path,
+                    autocaption_prefix,
+                    autocaption_suffix,
+                    encoder_prompt,
                 )
 
     def caption_image(
@@ -126,6 +134,7 @@ class Captioner:
         caption_path: Path,
         autocaption_prefix: str,
         autocaption_suffix: str,
+        encoder_prompt: str,
     ):
         conv_mode = "llava_v1"
         conv = conv_templates[conv_mode].copy()
@@ -141,7 +150,13 @@ class Captioner:
 
         # just one turn, always prepend image token
         inp = DEFAULT_IMAGE_TOKEN + "\n"
-        inp += PROMPT
+        inp += PROMPT.replace("{ENCODER_PROMPT}", encoder_prompt)
+        if autocaption_prefix != "":
+            inp += f"Always start the prompt with exacly these words: {autocaption_prefix}\n"
+        if autocaption_suffix != "":
+            inp += (
+                f"Always end the prompt with exacly these words: {autocaption_suffix}\n"
+            )
 
         conv.append_message(conv.roles[0], inp)
 
@@ -169,7 +184,7 @@ class Captioner:
                 0
             ].strip()
 
-            output = autocaption_prefix + output + autocaption_suffix
+            output = output
 
             print(f"Caption for {image_path}: {output}")
 
